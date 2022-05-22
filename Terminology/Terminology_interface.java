@@ -99,8 +99,10 @@ public class Terminology_interface extends JFrame {
 
 
 	}
+	
+	// Very likely will be completly redone from scratch
 	public void create_term_tree() {
-
+		
 		JLabel domain_term_label = new JLabel("Domain Terms");
 
 		GridBagConstraints c = new GridBagConstraints();
@@ -131,8 +133,8 @@ public class Terminology_interface extends JFrame {
 		DefaultMutableTreeNode category = null;
 		DefaultMutableTreeNode book = null;
 
-		// Getting keySets of Hashtable and
-		// storing it into Set
+		
+		// Sort terms (keys) for visualization
 		Set<String> setOfKeys = term_map.keySet();
 
 		TreeSet<String> myTreeSet = new TreeSet<String>();
@@ -143,8 +145,7 @@ public class Terminology_interface extends JFrame {
 
 		System.out.println(sorted_letters);
 
-		// Iterating through the Hashtable
-		// object using for-Each loop
+
 		for (String key : sorted_letters) {
 
 			System.out.println(key);
@@ -179,7 +180,7 @@ public class Terminology_interface extends JFrame {
 			}
 		});
 	}
-
+	// Very likely will be completly redone from scratch
 	public void create_selected_term_list() {
 
 		GridBagConstraints c = new GridBagConstraints();
@@ -197,6 +198,8 @@ public class Terminology_interface extends JFrame {
 		contentPane.add(selected_terms, c);
 		ui_elements.put("selected_terms", selected_terms);
 	}
+	
+	//Used to store GridBagConstraints for all elements in one place
 	public GridBagConstraints get_ui_grid_specifics(String element) {
 
 		GridBagConstraints c = new GridBagConstraints();
@@ -235,7 +238,8 @@ public class Terminology_interface extends JFrame {
 		}
 		return c;
 	}
-
+	
+	// Very likely will be completly redone from scratch
 	public void update_selected_term_list() {
 		JList selected_terms = (JList) ui_elements.get("selected_terms");
 		String[] test = {"Hxllo", "Guten Tag"};
@@ -257,16 +261,9 @@ public class Terminology_interface extends JFrame {
 			}
 		}
 		selected_terms.setModel(listModel);
-
-
-
-
-
-
-
-
 	}
 
+	// Used to prepare information for creating a TreeGraph (JPanel) for relation visualization
 	public void draw_graph() {
 		JSONArray relations_list = new JSONArray();
 		term_no_path = new JSONArray();
@@ -296,6 +293,7 @@ public class Terminology_interface extends JFrame {
 		canvas.setSize(canvas.x, canvas.y);		
 	}
 
+	// Used to load data from excel sheet into application
 	public void load_data() throws IOException {
 
 		domain = "Rohr";
