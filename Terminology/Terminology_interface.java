@@ -32,9 +32,12 @@ import org.json.simple.JSONObject;
 public class Terminology_interface extends JFrame {
 
 	private JPanel contentPane;
+	// Used to store all UI elements 
 	private JSONObject ui_elements;
+	// Used to store all terms and their relation paths
 	private JSONArray terms;
 	private String domain;
+	// All terms without relation path for display
 	private JSONArray term_no_path;
 
 	/**
@@ -53,22 +56,23 @@ public class Terminology_interface extends JFrame {
 		});
 	}
 
-	/**
-	 * Create the frame.
-	 * @throws IOException 
-	 */
 	public Terminology_interface() throws IOException {
+		// Initialize JFrame
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
+		//Initialize JPanel
 		contentPane = new JPanel();
 		contentPane.setLayout(new GridBagLayout());
 		setContentPane(contentPane);
 
 		ui_elements = new JSONObject();
+		// Get data from Excel sheet
 		load_data();
+		// Build term tree for visualization in UI
 		create_term_tree();
 		create_selected_term_list();
 		update_selected_term_list();
+		// Draw terminology graph using selected domain and configured relation paths
 		draw_graph();
 
 
@@ -266,15 +270,15 @@ public class Terminology_interface extends JFrame {
 	public void draw_graph() {
 		JSONArray relations_list = new JSONArray();
 		term_no_path = new JSONArray();
-		
+
 		for (int i = 0; i < terms.size(); i++) {
-			
+
 			String[] term_data = (String[]) terms.get(i);
 			if (term_data[1] != "") {
-				
+
 				relations_list.add(term_data[1]);
 			} else {
-				
+
 				term_no_path.add(term_data[0]);
 			}
 		}
@@ -287,21 +291,21 @@ public class Terminology_interface extends JFrame {
 		getContentPane().add(scroll, c);
 	}
 	public void update_graph() {
-		
+
 		TreeGraph canvas = (TreeGraph) ui_elements.get("term_graph");
 		canvas.setSize(canvas.x, canvas.y);		
 	}
-	
+
 	public void load_data() throws IOException {
-		
+
 		domain = "Rohr";
 		terms = new JSONArray();
 		//reading data from a file in the form of bytes  
 		FileInputStream fis = new FileInputStream("C:\\Users\\Tom Schneider\\Desktop\\terminology_data.xlsx");  
 		//constructs an XSSFWorkbook object, by buffering the whole stream into the memory  
 		XSSFWorkbook wb = new XSSFWorkbook(fis);  
-		
-		
+
+
 		Sheet sheet = wb.getSheetAt(0);   //getting the XSSFSheet object at given index  
 		int rows = sheet.getPhysicalNumberOfRows();
 		System.out.println(rows);
@@ -311,27 +315,28 @@ public class Terminology_interface extends JFrame {
 			String term_domain = cell.getStringCellValue(); 
 			System.out.println(term_domain);
 			System.out.println(domain);
-			
+
 			if (term_domain.equals(domain)) {
-				
+
 				cell = row.getCell(0);
 				String term_name = cell.getStringCellValue(); 
-				System.out.println(term_name);
-				
+
 				cell = row.getCell(1);
 				String relations;
+				
 				if (cell == null || cell.getCellType() == Cell.CELL_TYPE_BLANK) {
-					
-				    relations = "";
-				    
-				 } else {
-					 
+
+					relations = "";
+
+				} else {
+
 					relations = cell.getStringCellValue(); 
-				 }
+				}
+
 				System.out.println(relations);
 				String[] term_data = {term_name, relations};
 				terms.add(term_data);
-				
+
 			}
 
 		}  
