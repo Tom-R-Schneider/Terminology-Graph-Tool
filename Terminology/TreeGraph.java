@@ -25,7 +25,7 @@ public class TreeGraph extends JPanel {
 	public int x;
 	public int y;
 
-	public TreeGraph(String[] paths) {
+	public TreeGraph(JSONArray paths) {
 		get_graph_layers(paths);
 		JPanel drawing = new JPanel();
 		this.drawing = drawing;
@@ -106,10 +106,11 @@ public class TreeGraph extends JPanel {
 	public void update_params(String[] layers) {
 
 	}
-	public void get_graph_layers(String[] paths) {
+	public void get_graph_layers(JSONArray paths) {
 		JSONObject layers = new JSONObject();
 		term_relations = new JSONArray();
-		for (String path: paths) {
+		for (int t = 0; t < paths.size(); t++) {
+			String path = (String) paths.get(t); 
 			String[] nodes = path.split("/");
 
 			for (int i = 0; i < nodes.length; i++) {

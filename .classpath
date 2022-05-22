@@ -7,5 +7,9 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="D:/Downloads/json-simple-1.1.1.jar"/>
+	<classpathentry kind="lib" path="D:/Downloads/poi-3.11-beta2.jar"/>
+	<classpathentry kind="lib" path="D:/Downloads/poi-ooxml-3.11-beta2.jar"/>
+	<classpathentry kind="lib" path="D:/Downloads/xmlbeans-2.6.0.jar"/>
+	<classpathentry kind="lib" path="D:/Downloads/poi-ooxml-schemas-3.11-beta2.jar"/>
 	<classpathentry kind="output" path=""/>
 </classpath>

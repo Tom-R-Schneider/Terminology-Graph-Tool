@@ -1,23 +1,12 @@
 package Terminology;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.Frame;
-import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.util.ArrayList;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -26,26 +15,27 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import Terminology.CGTemplate.DrawCanvas;
-
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTree;
-import javax.swing.ScrollPaneConstants;
 
 public class Terminology_interface extends JFrame {
 
 	private JPanel contentPane;
 	private JSONObject ui_elements;
+	private JSONArray terms;
+	private String domain;
+	private JSONArray term_no_path;
 
 	/**
 	 * Launch the application.
@@ -65,8 +55,9 @@ public class Terminology_interface extends JFrame {
 
 	/**
 	 * Create the frame.
+	 * @throws IOException 
 	 */
-	public Terminology_interface() {
+	public Terminology_interface() throws IOException {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
 		contentPane = new JPanel();
@@ -74,6 +65,7 @@ public class Terminology_interface extends JFrame {
 		setContentPane(contentPane);
 
 		ui_elements = new JSONObject();
+		load_data();
 		create_term_tree();
 		create_selected_term_list();
 		update_selected_term_list();
@@ -272,9 +264,22 @@ public class Terminology_interface extends JFrame {
 	}
 
 	public void draw_graph() {
-		String[] test_list = {"Rohr/Anwendung/Gasrohr", "Rohr/Anwendung/Wasserrohr", "Rohr/Material/Stahlrohr", "Rohr/Material/Glasrohr", "Rohr/Funktion/Überlaufrohr", "Rohr/Funktion/Abflussrohr"};
+		JSONArray relations_list = new JSONArray();
+		term_no_path = new JSONArray();
+		
+		for (int i = 0; i < terms.size(); i++) {
+			
+			String[] term_data = (String[]) terms.get(i);
+			if (term_data[1] != "") {
+				
+				relations_list.add(term_data[1]);
+			} else {
+				
+				term_no_path.add(term_data[0]);
+			}
+		}
 		GridBagConstraints c = get_ui_grid_specifics("term_graph");
-		TreeGraph canvas = new TreeGraph(test_list);
+		TreeGraph canvas = new TreeGraph(relations_list);
 		JScrollPane scroll = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scroll.setPreferredSize(new Dimension(500,500));
 		scroll.setViewportView(canvas);
@@ -285,6 +290,51 @@ public class Terminology_interface extends JFrame {
 		
 		TreeGraph canvas = (TreeGraph) ui_elements.get("term_graph");
 		canvas.setSize(canvas.x, canvas.y);		
+	}
+	
+	public void load_data() throws IOException {
+		
+		domain = "Rohr";
+		terms = new JSONArray();
+		//reading data from a file in the form of bytes  
+		FileInputStream fis = new FileInputStream("C:\\Users\\Tom Schneider\\Desktop\\terminology_data.xlsx");  
+		//constructs an XSSFWorkbook object, by buffering the whole stream into the memory  
+		XSSFWorkbook wb = new XSSFWorkbook(fis);  
+		
+		
+		Sheet sheet = wb.getSheetAt(0);   //getting the XSSFSheet object at given index  
+		int rows = sheet.getPhysicalNumberOfRows();
+		System.out.println(rows);
+		for (int i = 1; i < rows; i++) {
+			Row row = sheet.getRow(i);
+			Cell cell = row.getCell(2);
+			String term_domain = cell.getStringCellValue(); 
+			System.out.println(term_domain);
+			System.out.println(domain);
+			
+			if (term_domain.equals(domain)) {
+				
+				cell = row.getCell(0);
+				String term_name = cell.getStringCellValue(); 
+				System.out.println(term_name);
+				
+				cell = row.getCell(1);
+				String relations;
+				if (cell == null || cell.getCellType() == Cell.CELL_TYPE_BLANK) {
+					
+				    relations = "";
+				    
+				 } else {
+					 
+					relations = cell.getStringCellValue(); 
+				 }
+				System.out.println(relations);
+				String[] term_data = {term_name, relations};
+				terms.add(term_data);
+				
+			}
+
+		}  
 	}
 
 }
