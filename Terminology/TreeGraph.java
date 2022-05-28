@@ -220,6 +220,10 @@ public class TreeGraph extends JPanel {
 		}
 	}
 	
+	public JSONObject get_term_graph() {
+		return term_graph;
+	}
+	
 }
 
 

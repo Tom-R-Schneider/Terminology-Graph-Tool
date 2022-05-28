@@ -68,12 +68,10 @@ public class Terminology_interface extends JFrame {
 		ui_elements = new JSONObject();
 		// Get data from Excel sheet
 		load_data();
-		// Build term tree for visualization in UI
-		create_term_tree();
-		create_selected_term_list();
-		update_selected_term_list();
 		// Draw terminology graph using selected domain and configured relation paths
 		draw_graph();
+		create_unused_term_column();
+		create_used_term_column();
 
 
 
@@ -180,24 +178,6 @@ public class Terminology_interface extends JFrame {
 			}
 		});
 	}
-	// Very likely will be completly redone from scratch
-	public void create_selected_term_list() {
-
-		GridBagConstraints c = new GridBagConstraints();
-		JLabel selected_term_label = new JLabel("Selected Terms");
-
-		c = get_ui_grid_specifics("selected_term_label");
-
-
-		contentPane.add(selected_term_label, c);
-
-		String[] test = {"Hello", "Guten Tag"};
-		JList selected_terms = new JList(test);
-
-		c = get_ui_grid_specifics("selected_terms_jlist");
-		contentPane.add(selected_terms, c);
-		ui_elements.put("selected_terms", selected_terms);
-	}
 	
 	//Used to store GridBagConstraints for all elements in one place
 	public GridBagConstraints get_ui_grid_specifics(String element) {
@@ -211,7 +191,7 @@ public class Terminology_interface extends JFrame {
 			c.gridy = 0;
 			break;
 
-		case "checkbox_tree":
+		case "unused_tree":
 			c.gridx = 0;
 			c.gridy = 1;
 			c.weighty = 1;
@@ -223,7 +203,7 @@ public class Terminology_interface extends JFrame {
 			c.gridy = 0;
 			break;
 
-		case "selected_terms_jlist":
+		case "used_tree":
 			c.gridx = 1;
 			c.gridy = 1;
 			c.anchor = GridBagConstraints.NORTHWEST;
@@ -338,6 +318,69 @@ public class Terminology_interface extends JFrame {
 			
 
 		}  
+	}
+	
+	public void create_used_term_column() {
+		
+		DefaultMutableTreeNode top = new DefaultMutableTreeNode("Used Terms in " + domain);
+		
+		// Recreate Graph using JTree
+		TreeGraph tree_graph = (TreeGraph) ui_elements.get("term_graph");
+		JSONObject term_graph = tree_graph.get_term_graph();
+		
+		Set<String> keys = term_graph.keySet();
+		for (String key: keys) {
+			
+			rec_create_used_term_nodes((JSONObject) term_graph.get(key), top);
+		}
+
+		
+	    JTree tree = new JTree(top);
+	    JScrollPane treeView = new JScrollPane(tree);
+	    GridBagConstraints c = get_ui_grid_specifics("used_tree");
+		contentPane.add(treeView, c);
+	}
+	
+	public void create_unused_term_column() {
+		
+		DefaultMutableTreeNode top = new DefaultMutableTreeNode("Unused Terms in " + domain);
+		DefaultMutableTreeNode letter = null;
+	    DefaultMutableTreeNode word = null;
+		JSONObject letters_used = new JSONObject();
+		
+		// Create Branches for letters used and store terms in them 
+		for (int i = 0; i < term_no_path.size(); i++) {	
+		    
+		    String term = (String) term_no_path.get(i);
+			char term_char = Character.toUpperCase(term.charAt(0));
+			
+		    if (!letters_used.containsKey(term_char)) {
+		    	
+		    	letter = new DefaultMutableTreeNode(term_char);
+		    	top.add(letter);
+		    	letters_used.put(term_char, letter);  	
+		    }
+		    
+		    letter = (DefaultMutableTreeNode) letters_used.get(term_char);
+		    letter.add(new DefaultMutableTreeNode(term));
+		}
+		
+	    JTree tree = new JTree(top);
+	    JScrollPane treeView = new JScrollPane(tree);
+	    GridBagConstraints c = get_ui_grid_specifics("unused_tree");
+		contentPane.add(treeView, c);
+		
+	}
+	
+	private void rec_create_used_term_nodes(JSONObject curr_sub_terms, DefaultMutableTreeNode curr_node) {
+		
+		Set<String> keys = curr_sub_terms.keySet();
+		for (String key: keys) {
+			DefaultMutableTreeNode new_node = new DefaultMutableTreeNode(key);
+			curr_node.add(new_node);
+			rec_create_used_term_nodes((JSONObject) curr_sub_terms.get(key), new_node);
+			
+		}
 	}
 
 }
