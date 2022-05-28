@@ -289,8 +289,7 @@ public class Terminology_interface extends JFrame {
 	}
 	public void update_graph() {
 
-		TreeGraph canvas = (TreeGraph) ui_elements.get("term_graph");
-		canvas.setSize(canvas.x, canvas.y);		
+		TreeGraph canvas = (TreeGraph) ui_elements.get("term_graph");	
 	}
 
 	// Used to load data from excel sheet into application
@@ -336,6 +335,7 @@ public class Terminology_interface extends JFrame {
 				terms.add(term_data);
 
 			}
+			
 
 		}  
 	}

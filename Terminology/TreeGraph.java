@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.*;    // Using Swing's components and containers
 
@@ -18,7 +19,9 @@ import org.json.simple.JSONObject;
 public class TreeGraph extends JPanel {
 	
 	// Describes all terms per layer
-	private String[] layers;
+	private String[] layer_strings;
+	private JSONObject layers;
+	private JSONObject term_graph;
 	// Stores terms and their relation path
 	private JSONArray term_relations;
 
@@ -35,15 +38,15 @@ public class TreeGraph extends JPanel {
 		super.paintComponent(g);  
 		// paint parent's background
 		setBackground(Color.WHITE);  // set background color for this JPanel
-		int[] string_lengths = new int[layers.length];
+		int[] string_lengths = new int[layer_strings.length];
 		int max_length = 0;
 		g.setFont(new Font("Monospaced", Font.PLAIN, 12));
 		g.setColor(Color.BLACK);
 		
 		// Get length of each layer and determine the largest one for drawing dimensions
-		for (int i = 0; i < layers.length; i++) {
+		for (int i = 0; i < layer_strings.length; i++) {
 
-			string_lengths[i] = g.getFontMetrics().stringWidth(layers[i]);
+			string_lengths[i] = g.getFontMetrics().stringWidth(layer_strings[i]);
 			System.out.println(string_lengths[i]);
 			if (string_lengths[i] > max_length) {
 
@@ -51,7 +54,7 @@ public class TreeGraph extends JPanel {
 			}	
 		}
 		// Calculate Dimensions for Drawing
-		int y = layers.length * 50 + 50;
+		int y = layer_strings.length * 50 + 50;
 		int x = max_length + 150;
 		
 		System.out.println(x + ", " + y);
@@ -67,14 +70,14 @@ public class TreeGraph extends JPanel {
 		JSONObject word_coordinates = new JSONObject();
 		
 		// Get anchor point for each word of each layer
-		for (int i = 0; i < layers.length; i++) {
+		for (int i = 0; i < layer_strings.length; i++) {
 			
 			JSONArray word_arr = new JSONArray();
-			words_in_layer = layers[i].split("      ");
+			words_in_layer = layer_strings[i].split("      ");
 			// Calculation of layer anchor points
 			anchor_x = (x - string_lengths[i]) / 2;
 			anchor_y = i * 50 + 50;
-			g.drawString(layers[i], anchor_x, anchor_y);
+			g.drawString(layer_strings[i], anchor_x, anchor_y);
 
 			int word_anchor_x = 0;
 			int word_anchor_y = anchor_y - 10;
@@ -127,30 +130,18 @@ public class TreeGraph extends JPanel {
 	// Create layers using provided terms and relation paths from excel to later draw them
 	public void get_graph_layers(JSONArray paths) {
 		
-		JSONObject layers = new JSONObject();
 		term_relations = new JSONArray();
+		term_graph = new JSONObject();
+		layers = new JSONObject();
+		
 		
 		// For every path in paths
 		for (int t = 0; t < paths.size(); t++) {
 			String path = (String) paths.get(t); 
 			String[] nodes = path.split("/");
 
-			// For layer depth in relation path
-			for (int i = 0; i < nodes.length; i++) {
-
-				// Check if layer is already in the current model
-				if (!(layers.containsKey(i))) {
-
-					layers.put(i, new JSONArray());
-				}
-
-				// Check if word is already in the current model
-				JSONArray arr = (JSONArray) layers.get(i);  
-				if (!arr.contains(nodes[i])) {
-
-					arr.add(nodes[i]);
-				}
-			}
+			// Create path in term graph
+			rec_term_graph_creation(term_graph, nodes, 0);
 			
 			// Split relations to only have 2 words per relation
 			for (int i = 0; i < nodes.length - 1; i++) {
@@ -160,13 +151,17 @@ public class TreeGraph extends JPanel {
 			}
 
 		}
+		
+		rec_layer_creation(term_graph, 0);
 
 		int [] counter = {0, 0};
 		int temp_chars;
 		String temp_term;
 
-		String[] layer_strings = new String[layers.size()];
-
+		layer_strings = new String[layers.size()];
+		
+		System.out.println("LOOK HERE");
+		System.out.println(layers);
 		// Create one String per layer to later draw entire layer with it
 		for (int i = 0; i < layers.size(); i++) {
 
@@ -192,9 +187,39 @@ public class TreeGraph extends JPanel {
 				counter[0] = i;
 			}
 		}
-
-		this.layers = layer_strings;
 	}
+	
+	// Recurrent function to build correctly sorted layers 
+	private void rec_layer_creation(JSONObject curr_graph_node, int curr_layer) {
+		
+		Set<String> terms = curr_graph_node.keySet();
+		if (!layers.containsKey(curr_layer) && terms.size() != 0) {
+
+			layers.put(curr_layer, new JSONArray());
+		}
+		
+		for (String term: terms) {
+			
+			JSONArray arr = (JSONArray) layers.get(curr_layer);  
+			arr.add(term);
+			rec_layer_creation((JSONObject) curr_graph_node.get(term), curr_layer + 1);
+		}
+	}
+	
+	// Recurrent function to build term graph structure using JSONObjects
+	private void rec_term_graph_creation(JSONObject curr_graph_node, String[] terms, int step) {
+		
+		if (!curr_graph_node.containsKey(terms[step])) {
+			
+			curr_graph_node.put(terms[step], new JSONObject());
+		}
+		
+		if (step + 1 < terms.length) {
+			
+			rec_term_graph_creation((JSONObject) curr_graph_node.get(terms[step]), terms, step + 1);
+		}
+	}
+	
 }
 
 
