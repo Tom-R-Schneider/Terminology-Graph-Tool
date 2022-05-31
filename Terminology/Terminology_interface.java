@@ -70,8 +70,16 @@ public class Terminology_interface extends JFrame {
 		load_data();
 		// Draw terminology graph using selected domain and configured relation paths
 		draw_graph();
-		create_unused_term_column();
-		create_used_term_column();
+		//create_unused_term_column();
+		//create_used_term_column();
+		
+		// Recreate Graph using JTree
+		TreeGraph tree_graph = (TreeGraph) ui_elements.get("term_graph");
+		JSONObject term_graph = tree_graph.get_term_graph();
+	    DnDJTree newContentPane = new DnDJTree(term_graph, domain, term_no_path);
+	    newContentPane.setOpaque(true);
+	    GridBagConstraints c = get_ui_grid_specifics("used_tree");
+	    add(newContentPane, c);
 
 
 
@@ -372,16 +380,6 @@ public class Terminology_interface extends JFrame {
 		
 	}
 	
-	private void rec_create_used_term_nodes(JSONObject curr_sub_terms, DefaultMutableTreeNode curr_node) {
-		
-		Set<String> keys = curr_sub_terms.keySet();
-		for (String key: keys) {
-			DefaultMutableTreeNode new_node = new DefaultMutableTreeNode(key);
-			curr_node.add(new_node);
-			rec_create_used_term_nodes((JSONObject) curr_sub_terms.get(key), new_node);
-			
-		}
-	}
 
 }
 
