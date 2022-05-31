@@ -3,6 +3,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.datatransfer.DataFlavor;
+import java.util.Enumeration;
 import java.util.Set;
 
 /*  w  w w.  j a va 2s.  com*/
@@ -11,9 +12,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.TransferHandler;
+import javax.swing.text.Position;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import org.json.simple.JSONArray;
@@ -21,7 +25,9 @@ import org.json.simple.JSONObject;
 
 public class DnDJTree extends JPanel {
   JTree tree;
+  JTree second_tree;
   DefaultTreeModel treeModel;
+  
 
   public DnDJTree(JSONObject term_graph, String domain, JSONArray term_no_path) {
     setLayout(new GridLayout(1, 3));
@@ -32,9 +38,9 @@ public class DnDJTree extends JPanel {
     scroll.setViewportView(tree);
 
     treeModel = get_used_TreeModel(term_graph, domain);
-    JTree secondTree = new JTree(treeModel);
-    secondTree.setPreferredSize(new Dimension(200, 400));
-    secondTree.setTransferHandler(new TransferHandler() {
+    JTree second_tree = new JTree(treeModel);
+    second_tree.setPreferredSize(new Dimension(200, 400));
+    second_tree.setTransferHandler(new TransferHandler() {
       @Override
       public boolean importData(TransferSupport support) {
         if (!canImport(support)) {
@@ -60,10 +66,13 @@ public class DnDJTree extends JPanel {
         DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) path
             .getLastPathComponent();
         treeModel.insertNodeInto(newNode, parentNode, childIndex);
-
         tree.makeVisible(path.pathByAddingChild(newNode));
-        tree.scrollRectToVisible(tree.getPathBounds(path
-            .pathByAddingChild(newNode)));
+        DefaultTreeModel tree_model = (DefaultTreeModel) tree.getModel();
+        MutableTreeNode root = (MutableTreeNode) tree_model.getRoot();
+        rec_find_node_to_delete(root, data);
+        tree_model.reload(root);
+        tree.scrollRectToVisible(tree.getPathBounds(path.pathByAddingChild(newNode)));
+        
         return true;
       }
 
@@ -85,7 +94,7 @@ public class DnDJTree extends JPanel {
       }
     });
     JScrollPane secondScroll = new JScrollPane();
-    secondScroll.setViewportView(secondTree);
+    secondScroll.setViewportView(second_tree);
 
     JPanel topPanel = new JPanel(new BorderLayout());
     topPanel.add(scroll, BorderLayout.CENTER);
@@ -150,4 +159,42 @@ public class DnDJTree extends JPanel {
 			
 		}
 	}
+  private boolean rec_find_node_to_delete(MutableTreeNode curr_node, String to_be_deleted) {
+	  int child_count = curr_node.getChildCount();
+	  boolean found = false;
+	  for (int i = 0; i < child_count; i++) {
+		  if (found)  {
+			  return true;
+		  }
+		  
+		  MutableTreeNode curr_child = (MutableTreeNode) curr_node.getChildAt(i);
+		  String curr_child_string = curr_child.toString();
+		  System.out.println(curr_child_string);
+		  System.out.println(to_be_deleted);
+		  if (curr_child_string.equals(to_be_deleted)) {
+			  
+			  found = true;
+			  curr_child.removeFromParent();
+			  return true;		
+			  
+		  } else {
+			  
+			  found = rec_find_node_to_delete(curr_child, to_be_deleted);
+		  }
+		  
+	  }
+	return false;
+  }
 }
+
+
+
+
+
+
+
+
+
+
+
+
