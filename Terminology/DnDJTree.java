@@ -29,7 +29,7 @@ public class DnDJTree extends JPanel {
   DefaultTreeModel treeModel;
   
 
-  public DnDJTree(JSONObject term_graph, String domain, JSONArray term_no_path) {
+  public DnDJTree(JSONObject term_graph, String domain, JSONArray term_no_path, Terminology_interface frame) {
     setLayout(new GridLayout(1, 3));
     tree = new JTree(get_unused_TreeModel(term_no_path, domain));
     tree.setDragEnabled(true);
@@ -69,8 +69,25 @@ public class DnDJTree extends JPanel {
         tree.makeVisible(path.pathByAddingChild(newNode));
         DefaultTreeModel tree_model = (DefaultTreeModel) tree.getModel();
         MutableTreeNode root = (MutableTreeNode) tree_model.getRoot();
+        JSONObject new_path = new JSONObject();
+        new_path.put(0, domain);
+        
         rec_find_node_to_delete(root, data);
+       
         tree_model.reload(root);
+        DefaultTreeModel second_tree_model = (DefaultTreeModel) second_tree.getModel();
+        MutableTreeNode second_root = (MutableTreeNode) second_tree_model.getRoot();
+        rec_find_new_node_path(second_root, data, new_path, 1);
+        
+        String new_path_string = domain;
+        
+        for (int i = 1; i < new_path.size(); i++) {
+        	
+        	String temp_term = (String) new_path.get(i);
+        	new_path_string += "/" + temp_term;
+        }
+        System.out.println(new_path_string);
+        frame.update_term_graph(data, new_path_string);
         tree.scrollRectToVisible(tree.getPathBounds(path.pathByAddingChild(newNode)));
         
         return true;
@@ -166,7 +183,6 @@ public class DnDJTree extends JPanel {
 		  if (found)  {
 			  return true;
 		  }
-		  
 		  MutableTreeNode curr_child = (MutableTreeNode) curr_node.getChildAt(i);
 		  String curr_child_string = curr_child.toString();
 		  System.out.println(curr_child_string);
@@ -184,6 +200,35 @@ public class DnDJTree extends JPanel {
 		  
 	  }
 	return false;
+  }
+  
+  private boolean rec_find_new_node_path(MutableTreeNode curr_node, String to_be_found, JSONObject curr_path, int curr_depth) {
+	  int child_count = curr_node.getChildCount();
+	  boolean found = false;	  
+	  
+	  for (int i = 0; i < child_count; i++) {
+		  
+		  MutableTreeNode curr_child = (MutableTreeNode) curr_node.getChildAt(i);
+		  String curr_child_string = curr_child.toString();
+		  
+		  
+		  System.out.println(curr_child_string);
+		  System.out.println(to_be_found);
+		  if (curr_child_string.equals(to_be_found)) {
+			  
+			  found = true;	
+			  
+		  } else {
+			  
+			  found = rec_find_new_node_path(curr_child, to_be_found, curr_path, curr_depth + 1);	 
+		  } 
+		  
+		  if (found)  {
+			  curr_path.put(curr_depth, curr_child_string);
+			  return true;
+		  } 
+	  }
+	  return false;
   }
 }
 

@@ -29,8 +29,6 @@ public class TreeGraph extends JPanel {
 	public TreeGraph(JSONArray paths) {
 		get_graph_layers(paths);
 		JPanel drawing = new JPanel();
-
-
 	}
 	// Override paintComponent to perform your own painting
 	@Override
@@ -124,7 +122,7 @@ public class TreeGraph extends JPanel {
 	}
 	
 	public void update_params(String[] layers) {
-
+		
 	}
 	
 	// Create layers using provided terms and relation paths from excel to later draw them
@@ -222,6 +220,12 @@ public class TreeGraph extends JPanel {
 	
 	public JSONObject get_term_graph() {
 		return term_graph;
+	}
+	
+	public void update_graph(JSONArray paths) {
+		
+		get_graph_layers(paths);
+		repaint();
 	}
 	
 }
