@@ -4,6 +4,8 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -11,9 +13,11 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
@@ -75,7 +79,7 @@ public class Terminology_interface extends JFrame {
 		
 		create_term_columns();
 	
-
+		create_buttons();
 
 
 
@@ -137,6 +141,12 @@ public class Terminology_interface extends JFrame {
 			c.gridheight = 3;
 			c.anchor = GridBagConstraints.NORTHWEST;
 			break;
+		case "add_button":
+			c.gridx = 0;
+			c.gridy = 2;
+			c.anchor = GridBagConstraints.NORTHWEST;
+			break;
+			
 		}
 		return c;
 	}
@@ -221,7 +231,8 @@ public class Terminology_interface extends JFrame {
 				JSONObject term_graph = tree_graph.get_term_graph();
 			    DnDJTree newContentPane = new DnDJTree(term_graph, domain, term_no_path, this);
 			    newContentPane.setOpaque(true);
-			    GridBagConstraints c = get_ui_grid_specifics("used_tree");
+			    GridBagConstraints c = get_ui_grid_specifics("unused_tree");
+			    ui_elements.put("term_columns", newContentPane);
 			    add(newContentPane, c);
 	}
 	
@@ -247,6 +258,23 @@ public class Terminology_interface extends JFrame {
 			}
 		}
 		curr_drawing.update_graph(relations_list);
+	}
+	
+	public void create_buttons() {
+		
+		JButton add_terms = new JButton("Add new term");  
+		add_terms.addActionListener(new ActionListener(){  
+			public void actionPerformed(ActionEvent e){  
+	            System.out.println("works i guess");
+	            String term = JOptionPane.showInputDialog(frame, "Add a new term");
+	            String[] term_data = {term, ""};
+				terms.add(term_data);
+				DnDJTree term_columns = (DnDJTree) ui_elements.get("term_columns");
+				term_columns.update_unused_terms(term);
+	        }  
+	    });
+		GridBagConstraints c = get_ui_grid_specifics("add_button");
+		getContentPane().add(add_terms, c);
 	}
 	
 

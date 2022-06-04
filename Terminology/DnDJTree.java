@@ -230,6 +230,33 @@ public class DnDJTree extends JPanel {
 	  }
 	  return false;
   }
+  
+  public void update_unused_terms(String term) {
+	  
+	  DefaultTreeModel tree_model = (DefaultTreeModel) tree.getModel();
+	  DefaultMutableTreeNode root = (DefaultMutableTreeNode) tree_model.getRoot();
+      boolean node_exists = false;
+      char term_char = term.charAt(0);
+      for (int i = 0; i < root.getChildCount(); i++) {
+    	  DefaultMutableTreeNode curr_node = (DefaultMutableTreeNode) root.getChildAt(i);
+    	  String temp_char = curr_node.toString();
+    	  
+    	  if (temp_char.equals(String.valueOf(term_char))) {
+    		  node_exists = true;
+    		  curr_node.add(new DefaultMutableTreeNode(term));;
+    		  
+    		  
+    	  }
+    	  
+      }
+	  
+      if (!node_exists) {
+    	  DefaultMutableTreeNode new_char = new DefaultMutableTreeNode(Character.toUpperCase(term_char));
+    	  root.add(new_char);
+    	  new_char.add(new DefaultMutableTreeNode(term));
+      }
+      tree_model.reload();
+  }
 }
 
 
