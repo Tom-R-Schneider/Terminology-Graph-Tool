@@ -237,9 +237,11 @@ public class DnDJTree extends JPanel {
 	  DefaultMutableTreeNode root = (DefaultMutableTreeNode) tree_model.getRoot();
       boolean node_exists = false;
       char term_char = term.charAt(0);
+      term_char = Character.toUpperCase(term_char);
       for (int i = 0; i < root.getChildCount(); i++) {
     	  DefaultMutableTreeNode curr_node = (DefaultMutableTreeNode) root.getChildAt(i);
     	  String temp_char = curr_node.toString();
+    	  System.out.println(temp_char);
     	  
     	  if (temp_char.equals(String.valueOf(term_char))) {
     		  node_exists = true;

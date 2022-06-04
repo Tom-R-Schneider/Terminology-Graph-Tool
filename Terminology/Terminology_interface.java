@@ -7,6 +7,8 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
@@ -44,6 +46,7 @@ public class Terminology_interface extends JFrame {
 	// All terms without relation path for display
 	private JSONArray term_no_path;
 	private Terminology_interface frame;
+	private JSONArray new_terms;
 
 	/**
 	 * Launch the application.
@@ -181,6 +184,7 @@ public class Terminology_interface extends JFrame {
 
 		domain = "Rohr";
 		terms = new JSONArray();
+		new_terms = new JSONArray();
 		//reading data from a file in the form of bytes  
 		FileInputStream fis = new FileInputStream("C:\\Users\\Tom Schneider\\Desktop\\terminology_data.xlsx");  
 		//constructs an XSSFWorkbook object, by buffering the whole stream into the memory  
@@ -262,19 +266,122 @@ public class Terminology_interface extends JFrame {
 	
 	public void create_buttons() {
 		
+		//Button and Logic for adding terms into the domain 
 		JButton add_terms = new JButton("Add new term");  
 		add_terms.addActionListener(new ActionListener(){  
 			public void actionPerformed(ActionEvent e){  
-	            System.out.println("works i guess");
 	            String term = JOptionPane.showInputDialog(frame, "Add a new term");
 	            String[] term_data = {term, ""};
 				terms.add(term_data);
+				new_terms.add(term);
 				DnDJTree term_columns = (DnDJTree) ui_elements.get("term_columns");
 				term_columns.update_unused_terms(term);
 	        }  
 	    });
 		GridBagConstraints c = get_ui_grid_specifics("add_button");
 		getContentPane().add(add_terms, c);
+		
+		//Button and Logic for saving changes in the domain
+		JButton save_button = new JButton("Save Changes");  
+		save_button.addActionListener(new ActionListener(){  
+			public void actionPerformed (ActionEvent e){  
+				
+				// Change terms to JSONObject at some point as it is overall better for the project
+				JSONObject term_json = new JSONObject();
+				JSONArray append_list = new JSONArray();
+				for (int i = 0; i < terms.size(); i++) {
+					
+					String[] temp_term = (String[]) terms.get(i);
+					term_json.put(temp_term[0], temp_term[1]);
+				}
+				//reading data from a file in the form of bytes  
+				FileInputStream fis = null;
+				try {
+					fis = new FileInputStream("C:\\Users\\Tom Schneider\\Desktop\\terminology_data.xlsx");
+				} catch (FileNotFoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}  
+				//constructs an XSSFWorkbook object, by buffering the whole stream into the memory  
+				XSSFWorkbook wb = null;
+				try {
+					wb = new XSSFWorkbook(fis);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}  
+
+
+				Sheet sheet = wb.getSheetAt(0);   //getting the XSSFSheet object at given index  
+				int rows = sheet.getPhysicalNumberOfRows();
+				System.out.println(rows);
+				for (int i = 1; i < rows; i++) {
+					Row row = sheet.getRow(i);
+					Cell cell = row.getCell(2);
+					String term_domain = cell.getStringCellValue(); 
+					System.out.println(term_domain);
+					System.out.println(domain);
+
+					if (term_domain.equals(domain)) {
+
+						cell = row.getCell(0);
+						String term_name = cell.getStringCellValue();
+
+						cell = row.getCell(1);
+						String relations;
+					
+
+						if (cell == null || cell.getCellType() == Cell.CELL_TYPE_BLANK) {
+							row.createCell(1).setCellValue("");
+							cell = row.getCell(1);
+
+						}
+
+						relations = cell.getStringCellValue(); 
+						
+							
+						if (!relations.equals(term_json.get(term_name))) {
+							System.out.println("Look here");
+							System.out.println(term_json.get(term_name));
+							cell.setCellValue((String) term_json.get(term_name));
+						}
+
+						System.out.println(relations);
+						String[] term_data = {term_name, relations};
+						terms.add(term_data);
+
+					}
+					
+
+				}  
+				for (int i = 0; i < new_terms.size(); i++) {
+					Row row = sheet.createRow(rows + i);
+					row.createCell(0).setCellValue((String) new_terms.get(i));
+				    row.createCell(1).setCellValue((String) term_json.get(new_terms.get(i)));
+				    row.createCell(2).setCellValue(domain);
+					
+				}
+				
+				FileOutputStream os = null;
+				try {
+					os = new FileOutputStream("C:\\Users\\Tom Schneider\\Desktop\\terminology_data.xlsx");
+				} catch (FileNotFoundException e2) {
+					// TODO Auto-generated catch block
+					e2.printStackTrace();
+				}
+				try {
+					wb.write(os);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+
+				
+					
+	        }  
+	    });
+		c = get_ui_grid_specifics("save_button");
+		getContentPane().add(save_button, c);
 	}
 	
 
