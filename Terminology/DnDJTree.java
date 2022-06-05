@@ -3,6 +3,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Enumeration;
 import java.util.Set;
 
@@ -11,6 +13,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.text.Position;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -38,7 +41,7 @@ public class DnDJTree extends JPanel {
     scroll.setViewportView(tree);
 
     treeModel = get_used_TreeModel(term_graph, domain);
-    JTree second_tree = new JTree(treeModel);
+    second_tree = new JTree(treeModel);
     second_tree.setPreferredSize(new Dimension(200, 400));
     second_tree.setTransferHandler(new TransferHandler() {
       @Override
@@ -109,6 +112,41 @@ public class DnDJTree extends JPanel {
         }
         return true;
       }
+    });
+    tree.addMouseListener(new MouseAdapter() {
+        public void mouseClicked(MouseEvent me) {
+            delete_term(me);
+        }
+
+		private void delete_term(MouseEvent me) {
+			if (SwingUtilities.isRightMouseButton(me)) {
+				TreePath tp = tree.getPathForLocation(me.getX(), me.getY());
+				DefaultMutableTreeNode node = (DefaultMutableTreeNode) tp.getLastPathComponent();
+				String term_to_be_deleted = node.toString();
+				node.removeFromParent();
+				((DefaultTreeModel) tree.getModel()).reload();
+				frame.update_deleted_terms(term_to_be_deleted);
+			}
+			
+		}
+    });
+    
+    second_tree.addMouseListener(new MouseAdapter() {
+        public void mouseClicked(MouseEvent me) {
+            move_term_to_unused(me);
+        }
+
+		private void move_term_to_unused(MouseEvent me) {
+
+			if (SwingUtilities.isRightMouseButton(me)) {
+				TreePath tp = second_tree.getPathForLocation(me.getX(), me.getY());
+				DefaultMutableTreeNode node = (DefaultMutableTreeNode) tp.getLastPathComponent();
+				node.removeFromParent();	
+				update_unused_terms(node.toString());
+				((DefaultTreeModel) second_tree.getModel()).reload();
+			}
+			
+		}
     });
     JScrollPane secondScroll = new JScrollPane();
     secondScroll.setViewportView(second_tree);

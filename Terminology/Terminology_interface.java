@@ -47,6 +47,7 @@ public class Terminology_interface extends JFrame {
 	private JSONArray term_no_path;
 	private Terminology_interface frame;
 	private JSONArray new_terms;
+	private JSONArray deleted_terms;
 
 	/**
 	 * Launch the application.
@@ -185,6 +186,7 @@ public class Terminology_interface extends JFrame {
 		domain = "Rohr";
 		terms = new JSONArray();
 		new_terms = new JSONArray();
+		deleted_terms = new JSONArray();
 		//reading data from a file in the form of bytes  
 		FileInputStream fis = new FileInputStream("C:\\Users\\Tom Schneider\\Desktop\\terminology_data.xlsx");  
 		//constructs an XSSFWorkbook object, by buffering the whole stream into the memory  
@@ -382,6 +384,11 @@ public class Terminology_interface extends JFrame {
 	    });
 		c = get_ui_grid_specifics("save_button");
 		getContentPane().add(save_button, c);
+	}
+	
+	public void update_deleted_terms(String term_to_be_deleted) {
+		
+		deleted_terms.add(term_to_be_deleted);
 	}
 	
 
