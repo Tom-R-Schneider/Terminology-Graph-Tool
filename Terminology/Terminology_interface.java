@@ -6,10 +6,13 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
@@ -48,37 +51,28 @@ public class Terminology_interface extends JFrame {
 	private Terminology_interface frame;
 	private JSONArray new_terms;
 	private JSONArray deleted_terms;
+	private String excel_path;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					Terminology_interface frame = new Terminology_interface();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	public Terminology_interface() throws IOException {
+	public Terminology_interface(String domain) throws IOException {
 		// Initialize JFrame
+		String curr_path = System.getProperty("user.dir");
+		excel_path = curr_path + "\\data\\terminology_data.xlsx";
+		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
+		setBounds(100, 100, 1500, 750);
+		setLocationRelativeTo(null);
 		//Initialize JPanel
 		contentPane = new JPanel();
 		contentPane.setLayout(new GridBagLayout());
 		setContentPane(contentPane);
 		this.contentPane = contentPane;
+		this.domain = domain;
 
 		ui_elements = new JSONObject();
 		// Get data from Excel sheet
 		load_data();
 		// Draw terminology graph using selected domain and configured relation paths
+		create_labels();
 		draw_graph();
 		
 		create_term_columns();
@@ -109,6 +103,22 @@ public class Terminology_interface extends JFrame {
 
 	}
 	
+	public void create_labels() {
+		JLabel l = new JLabel();
+		 
+        // add text to label
+        l.setText("Unused domain terms");
+        
+        GridBagConstraints c = get_ui_grid_specifics("unused_term_label");
+        
+        add(l, c);
+        
+        l.setText("Used domain terms");
+        c = get_ui_grid_specifics("used_term_label");
+        add(l, c);
+        
+	}
+	
 	//Used to store GridBagConstraints for all elements in one place
 	public GridBagConstraints get_ui_grid_specifics(String element) {
 
@@ -116,39 +126,53 @@ public class Terminology_interface extends JFrame {
 
 		switch(element)  {
 
-		case "checkbox_tree_label":
+		case "unused_term_label":
 			c.gridx = 0;
 			c.gridy = 0;
+			c.anchor = GridBagConstraints.NORTHWEST;
+			c.fill = GridBagConstraints.HORIZONTAL;
+			c.weightx = 0.25;
 			break;
 
-		case "unused_tree":
+		case "unused_and_used_terms":
 			c.gridx = 0;
 			c.gridy = 1;
-			c.weighty = 1;
 			c.anchor = GridBagConstraints.NORTHWEST;
+			c.gridwidth = 2;
+			c.fill = GridBagConstraints.BOTH;
+			c.weightx = 0.5;
+			c.weighty = 0.5;
 			break;
 
-		case "selected_term_label":
+		case "used_term_label":
 			c.gridx = 1;
 			c.gridy = 0;
+			c.anchor = GridBagConstraints.NORTHWEST;
+			c.fill = GridBagConstraints.HORIZONTAL;
+			c.weightx = 0.25;
 			break;
 
-		case "used_tree":
-			c.gridx = 1;
-			c.gridy = 1;
-			c.anchor = GridBagConstraints.NORTHWEST;
-			break;
 		case "term_graph":
 			c.gridx = 2;
-			c.gridy = 1;
-			c.gridwidth = 3;
-			c.gridheight = 3;
+			c.gridy = 0;
 			c.anchor = GridBagConstraints.NORTHWEST;
+			c.gridheight = 3;
+			c.fill = GridBagConstraints.BOTH;
+			c.weightx = 1.0;
 			break;
 		case "add_button":
 			c.gridx = 0;
 			c.gridy = 2;
 			c.anchor = GridBagConstraints.NORTHWEST;
+			c.fill = GridBagConstraints.HORIZONTAL;
+			c.weightx = 0.25;
+			break;
+		case "save_button":
+			c.gridx = 1;
+			c.gridy = 2;
+			c.anchor = GridBagConstraints.NORTHWEST;
+			c.fill = GridBagConstraints.HORIZONTAL;
+			c.weightx = 0.25;
 			break;
 			
 		}
@@ -183,12 +207,11 @@ public class Terminology_interface extends JFrame {
 	// Used to load data from excel sheet into application
 	public void load_data() throws IOException {
 
-		domain = "Rohr";
 		terms = new JSONArray();
 		new_terms = new JSONArray();
 		deleted_terms = new JSONArray();
 		//reading data from a file in the form of bytes  
-		FileInputStream fis = new FileInputStream("C:\\Users\\Tom Schneider\\Desktop\\terminology_data.xlsx");  
+		FileInputStream fis = new FileInputStream(excel_path);  
 		//constructs an XSSFWorkbook object, by buffering the whole stream into the memory  
 		XSSFWorkbook wb = new XSSFWorkbook(fis);  
 
@@ -233,13 +256,13 @@ public class Terminology_interface extends JFrame {
 	public void create_term_columns() {
 		
 		// Recreate Graph using JTree
-				TreeGraph tree_graph = (TreeGraph) ui_elements.get("term_graph");
-				JSONObject term_graph = tree_graph.get_term_graph();
-			    DnDJTree newContentPane = new DnDJTree(term_graph, domain, term_no_path, this);
-			    newContentPane.setOpaque(true);
-			    GridBagConstraints c = get_ui_grid_specifics("unused_tree");
-			    ui_elements.put("term_columns", newContentPane);
-			    add(newContentPane, c);
+		TreeGraph tree_graph = (TreeGraph) ui_elements.get("term_graph");
+		JSONObject term_graph = tree_graph.get_term_graph();
+	    DnDJTree newContentPane = new DnDJTree(term_graph, domain, term_no_path, this);
+	    newContentPane.setOpaque(true);
+	    GridBagConstraints c = get_ui_grid_specifics("unused_and_used_terms");
+	    ui_elements.put("term_columns", newContentPane);
+	    add(newContentPane, c);
 	}
 	
 	public void update_term_graph(String term, String relation_path) {
@@ -299,7 +322,7 @@ public class Terminology_interface extends JFrame {
 				//reading data from a file in the form of bytes  
 				FileInputStream fis = null;
 				try {
-					fis = new FileInputStream("C:\\Users\\Tom Schneider\\Desktop\\terminology_data.xlsx");
+					fis = new FileInputStream(excel_path);
 				} catch (FileNotFoundException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -366,7 +389,7 @@ public class Terminology_interface extends JFrame {
 				
 				FileOutputStream os = null;
 				try {
-					os = new FileOutputStream("C:\\Users\\Tom Schneider\\Desktop\\terminology_data.xlsx");
+					os = new FileOutputStream(excel_path);
 				} catch (FileNotFoundException e2) {
 					// TODO Auto-generated catch block
 					e2.printStackTrace();
