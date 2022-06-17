@@ -2,7 +2,7 @@
 
 ## Features
 
-- Loads in Information from Excel Sheet
+- Uses Excel Sheets to store domains/terms/relations
 - Graphs relations between terms into a visual element
 - Columns for Used and Unused Terms
 - Ability to add new Terms and Save newly created relations
