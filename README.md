@@ -13,4 +13,11 @@
 
 
 - use 2 options for layers (always centered and centered under relation term) 
-- More options for term visualization (Font, Lettersize, etc)
+- More options for term visualization (Font, Letter size, etc)
+
+
+## How to start the application
+
+1. Download files
+2. Make sure all dependencies are installed
+3. Start the file Domain_select.java
